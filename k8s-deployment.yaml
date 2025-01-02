@@ -1,0 +1,187 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  DB_HOST: database
+  DB_PORT: "5432"
+  PORT: "3020"
+  OCR_API_URL: ocr-api:3021
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+        - name: database
+          image: postgres:17
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: POSTGRES_DB
+          volumeMounts:
+            - name: db-storage
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: db-storage
+          persistentVolumeClaim:
+            claimName: db-data
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: database
+  type: ClusterIP
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway-api
+  template:
+    metadata:
+      labels:
+        app: gateway-api
+    spec:
+      containers:
+        - name: gateway-api
+          image: gateway-api:latest
+          ports:
+            - containerPort: 3020
+          env:
+            - name: DB_HOST
+              value: database
+            - name: DB_PORT
+              value: "5432"
+            - name: PORT
+              value: "3020"
+            - name: DATABASE_URL
+              value: "postgresql://${DB_USERNAME}:${DB_PASSWORD}@database:5432/${DB_DATABASE}?schema=public"
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: POSTGRES_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: POSTGRES_PASSWORD
+            - name: DB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: POSTGRES_DB
+            - name: OCR_API_URL
+              value: ocr-api:3021
+          command:
+            - /bin/bash
+            - -c
+            - "npm run migrate:prod && npm run start:prod"
+          volumeMounts: []
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-api
+spec:
+  ports:
+    - port: 3020
+      targetPort: 3020
+  selector:
+    app: gateway-api
+  type: ClusterIP
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ocr-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ocr-api
+  template:
+    metadata:
+      labels:
+        app: ocr-api
+    spec:
+      containers:
+        - name: ocr-api
+          image: ocr-api:latest
+          ports:
+            - containerPort: 3021
+          env:
+            - name: PORT
+              value: "3021"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ocr-api
+spec:
+  ports:
+    - port: 3021
+      targetPort: 3021
+  selector:
+    app: ocr-api
+  type: ClusterIP

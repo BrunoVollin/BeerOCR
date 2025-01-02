@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package ocr;
+
+service OCRService {
+  rpc ProcessImage (ImageRequest) returns (ImageResponse);
+}
+
+message ImageRequest {
+  bytes image = 1;
+  string file_name = 2;
+  string mime_type = 3;
+}
+
+message ImageResponse {
+  string brand = 1;
+}

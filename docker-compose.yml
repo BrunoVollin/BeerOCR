@@ -1,0 +1,58 @@
+version: '3'
+services:
+  database:
+    image: postgres:17
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    ports:
+      - '${DB_PORT}:5432'  
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - backend
+      
+  gateway-api:
+    build:
+      context: ./gateway_api
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - '${GATEWAY_PORT}:${GATEWAY_PORT}'
+    environment:
+      DB_HOST: database            
+      DB_PORT:  5432 
+      PORT: ${GATEWAY_PORT}
+      DATABASE_URL: postgresql://${DB_USERNAME}:${DB_PASSWORD}@database:5432/${DB_DATABASE}?schema=public
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+      OCR_API_URL: ocr-api:${OCR_PORT}
+    depends_on:
+      - database
+    networks:
+      - backend
+    command: /bin/bash -c "npm run migrate:prod && npm run start:prod"
+
+  ocr-api: 
+    build:
+      context: ./ocr_api
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      PORT: ${OCR_PORT}
+    ports:
+      - '${OCR_PORT}:${OCR_PORT}'
+    networks:
+      - backend
+
+volumes:
+  db_data:
+
+networks:
+  backend:
+    driver: bridge
