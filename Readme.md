@@ -1,4 +1,23 @@
-# BeerOCR
+<div align="center">
+  <a href="">
+    <img src="./images/logo.png" alt="Logo" width="80" height="80">
+  </a>
+
+  <h3 align="center">Beer OCR 🍻</h3>
+
+  <p align="center">
+    An OCR to verify the beer brand
+    <br />
+   <a href="#setup"><strong>Getting started  »</strong></a>
+    <br />
+    <br />
+      &middot;
+      <a href="https://github.com/BrunoVollin/devour-map/BeerOCR">Report Bug</a>
+      &middot;
+      <a href="https://github.com/BrunoVollin/devour-map/BeerOCR">Request Feature</a>
+  </p>
+</div>
+
 
 ## Prerequisites
 
@@ -6,14 +25,11 @@
 - [Docker Compose](https://docs.docker.com/compose/)
 
 ## About the project
-
-
+This project automates the process of verifying beer brands in industrial settings. By using OCR to quickly and accurately identify the brand from images, it reduces human error and manual labor, improving efficiency and accuracy. The integration with a PostgreSQL database also ensures that all consultation data is stored for future reference, allowing for better tracking and reporting. This solution streamlines operations, enhances data management, and supports quality control in industries that deal with multiple beer brands.
+## Diagram
 <div align="center">
     <img src="https://github.com/user-attachments/assets/c5ca9ad2-c6f4-46b4-99be-e7606370a40f" alt="Diagram">
 </div>
-
-
-
 
 The project includes the following services:
 
@@ -57,3 +73,7 @@ Alternatively, open `http://localhost:{GATEWAY_PORT}` in your browser to use the
 ```bash
    cd gateway_api && yarn test
 ```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details.
