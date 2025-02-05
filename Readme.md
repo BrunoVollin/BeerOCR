@@ -7,6 +7,14 @@
 
 ## About the project
 
+
+<div align="center">
+    <img src="https://github.com/user-attachments/assets/c5ca9ad2-c6f4-46b4-99be-e7606370a40f" alt="Diagram">
+</div>
+
+
+
+
 The project includes the following services:
 
 1. **ocr_api**: A Python gRPC server that receives an image and returns the brand name of the beer. It can identify one of the following brands: Brahma, Spaten, and Corona.
